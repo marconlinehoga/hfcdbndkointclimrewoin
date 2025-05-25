@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>admin login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(160deg, #0f2027, #203a43, #2c5364);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 30px 20px;
+      width: 90%;
+      max-width: 350px;
+      text-align: center;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .container img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: 1.2px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    input::placeholder {
+      color: #bbb;
+    }
+
+    .btn {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: linear-gradient(to right, #1b1e2e, #2b2f49);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .btn:after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 100%;
+      background: rgba(0, 180, 255, 0.3);
+      transition: width 0.3s ease;
+      z-index: 0;
+    }
+
+    .btn.clicked:after {
+      width: 100%;
+    }
+
+    .btn span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn:hover {
+      background: #1f1f2e;
+    }
+
+    .whatsapp-link {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 14px;
+    }
+
+    .whatsapp-link a {
+      color: #25D366;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #ff4444;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="whatsapp-link">
+    <a href="https://wa.me/your-number" target="_blank">
+      Contact The Developer <i class="fab fa-whatsapp"></i>
+    </a>
+  </div>
+
+  <div class="container">
+    <img src="https://i.ibb.co/Xf3K3YTy/20250525-145111.png" alt="Zero Trace Logo">
+    <div class="title">RDX is back</div>
+    <input type="text" id="username" placeholder="login id">
+    <input type="password" id="password" placeholder="Password" oninput="checkPassword()">
+    <button class="btn" onclick="checkLogin(this)"><span>Login</span></button>
+    <div class="error" id="error"></div>
+  </div>
+
+  <script>
+    function checkPassword() {
+      const passwordInput = document.getElementById("password");
+      const loginBtn = document.querySelector(".btn");
+
+      if (passwordInput.value.trim() === "admin1234") {
+        loginBtn.style.display = "block";
+      } else {
+        loginBtn.style.display = "none";
+      }
+    }
+
+    function checkLogin(button) {
+      button.classList.add("clicked");
+      setTimeout(() => button.classList.remove("clicked"), 300);
+
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const error = document.getElementById("error");
+
+      if (user === "admin" && pass === "admin1234") {
+        window.location.href = "Admin.html"; // <--- Redirect here
+      } else {
+        error.textContent = "Contact Developer";
+      }
+    }
+  </script>
+
+  <!-- Font Awesome for WhatsApp icon -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+</body>
+</html>
