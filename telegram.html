@@ -16,7 +16,7 @@
       padding: 20px;
     }
     h2 { color: #333; }
-    textarea, input[type=file] {
+    textarea, input[type=file], input[type=text] {
       width: 90%;
       max-width: 400px;
       padding: 10px;
@@ -52,6 +52,13 @@
 <body>
 
   <div class="card">
+    <h2>🔑 Telegram Chat ID Setup</h2>
+    <input type="text" id="chatIdInput" placeholder="Enter Telegram Chat ID..." />
+    <button onclick="saveChatId()">Save Chat ID</button>
+    <p id="chatStatus"></p>
+  </div>
+
+  <div class="card">
     <h2>Send Text Message to Telegram 📩</h2>
     <textarea id="msg" rows="4" placeholder="Type your message here..."></textarea><br>
     <button onclick="sendText()">Send Message</button>
@@ -68,12 +75,32 @@
 
   <script>
     const BOT_TOKEN = "8317075018:AAEzUHiaGDgK0dWuYlgKWXwW0STw0ybU9ME";
-    const CHAT_ID = "8184803370";
+
+    // --- Load Chat ID from localStorage ---
+    let CHAT_ID = localStorage.getItem("chat_id") || "";
+    document.getElementById("chatIdInput").value = CHAT_ID;
+
+    function saveChatId() {
+      const newId = document.getElementById("chatIdInput").value.trim();
+      const chatStatus = document.getElementById("chatStatus");
+      if (!newId) {
+        chatStatus.textContent = "❌ Please enter a valid Chat ID.";
+        return;
+      }
+      localStorage.setItem("chat_id", newId);
+      CHAT_ID = newId;
+      chatStatus.textContent = "✅ Chat ID saved successfully!";
+      setTimeout(() => chatStatus.textContent = "", 3000);
+    }
 
     // --- Send text message ---
     async function sendText() {
       const msg = document.getElementById('msg').value.trim();
       const status = document.getElementById('statusText');
+      if (!CHAT_ID) {
+        status.textContent = "⚠️ Please set Chat ID first.";
+        return;
+      }
       if (!msg) {
         status.textContent = "❌ Please enter a message.";
         return;
@@ -103,6 +130,10 @@
       const fileInput = document.getElementById('fileInput');
       const caption = document.getElementById('caption').value.trim();
       const status = document.getElementById('statusFile');
+      if (!CHAT_ID) {
+        status.textContent = "⚠️ Please set Chat ID first.";
+        return;
+      }
       if (fileInput.files.length === 0) {
         status.textContent = "❌ Please select a file first.";
         return;
