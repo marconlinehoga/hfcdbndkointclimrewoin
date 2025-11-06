@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baba Kismat 2.O - Device Dashboard</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #000;
+    color: #fff;
+    margin: 0;
+  }
+  header {
+    background: #00c853;
+    color: #fff;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 24px;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,255,0,.3);
+  }
+  .top-buttons{
+    display:flex;justify-content:center;gap:10px;background:#111;
+    padding:10px;border-bottom:1px solid #222;
+  }
+  .top-buttons button{
+    background:#00c853;border:none;color:#fff;
+    padding:8px 15px;border-radius:6px;cursor:pointer;
+  }
+  .top-buttons button:hover{background:#00e676;color:#000;}
+
+  .stats{display:flex;justify-content:space-around;text-align:center;
+    margin:20px 10px;padding:10px;background:#111;border-radius:10px;}
+  .stats h3{color:#00e676;margin:5px 0;}
+  .device-list{max-height:70vh;overflow-y:auto;margin:20px;
+    background:#111;border-radius:10px;padding:10px;}
+  .device{display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid #222;padding:10px;cursor:pointer;}
+  .device:hover{background:#222;}
+  .device img{width:40px;height:40px;border-radius:6px;margin-right:10px;}
+  .device-info{flex:1;}
+  .status{padding:5px 10px;border-radius:6px;font-weight:bold;}
+  .online{background:#00e676;color:#000;}
+  .offline{background:#444;color:#fff;}
+
+  /* === Details Modal === */
+  .modal{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.9);display:none;flex-direction:column;
+    align-items:center;justify-content:flex-start;padding-top:40px;
+    z-index:10;
+  }
+  .modal.active{display:flex;}
+  .detail-box{
+    background:#111;border-radius:10px;padding:20px;width:90%;max-width:400px;
+    box-shadow:0 0 20px rgba(0,255,0,0.3);
+  }
+  .tabs-row{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+  }
+  .tabs{display:flex;gap:5px;}
+  .tabs button{
+    background:#222;color:#fff;border:none;
+    padding:8px 10px;border-radius:6px;cursor:pointer;
+  }
+  .tabs button.active{background:#00c853;color:#000;}
+  .actions{
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .settings-btn, .sms-btn{
+    background:#00c853;color:#000;border:none;
+    padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:bold;
+  }
+  .settings-btn:hover, .sms-btn:hover{background:#00e676;}
+  .detail-content div{margin:8px 0;font-size:15px;}
+  .close-btn{
+    background:#f44336;color:#fff;border:none;padding:8px 15px;
+    border-radius:6px;margin-top:15px;cursor:pointer;
+  }
+  .close-btn:hover{background:#ff6659;}
+</style>
+</head>
+<body>
+
+<header>Baba Kismat 2.O - Device Dashboard</header>
+
+<div class="top-buttons">
+  <button>⚙️ Settings</button>
+  <button>💬 All SMS</button>
+  <button>🔄 New Data</button>
+</div>
+
+<div class="stats">
+  <div><h3>Total</h3><p id="total">1753</p></div>
+  <div><h3>Online</h3><p id="online">654</p></div>
+  <div><h3>Offline</h3><p id="offline">1099</p></div>
+</div>
+
+<div class="device-list" id="deviceList"></div>
+
+<!-- Device Detail Modal -->
+<div class="modal" id="deviceModal">
+  <div class="detail-box">
+    <div class="tabs-row">
+      <div class="tabs">
+        <button class="tab active" data-tab="1">Page 1</button>
+        <button class="tab" data-tab="2">Page 2</button>
+        <button class="tab" data-tab="3">Page 3</button>
+        <button class="tab" data-tab="4">Page 4</button>
+      </div>
+      <div class="actions">
+        <button class="settings-btn" onclick="alert('Device settings opened!')">⚙️ Settings</button>
+        <button class="sms-btn" onclick="alert('Send SMS clicked!')">💬 SMS</button>
+      </div>
+    </div>
+    <div class="detail-content" id="detailContent"></div>
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+const brands=["Realme","Redmi","Samsung","Vivo","Oppo","Micromax","Lava","Infinix","OnePlus","Poco","Itel","Motorola","Nokia","Tecno"];
+const totalDevices=30;
+function randID(){return"DEV-"+Math.random().toString(36).substring(2,10).toUpperCase();}
+function randNum(){return Math.floor(Math.random()*9000)+1000;}
+const list=document.getElementById("deviceList");
+
+function randomPerson(){
+  const fn=["Ravi","Aman","Suman","Priya","Karan","Neha","Vivek","Pooja","Deepak","Rohit"];
+  const ln=["Sharma","Yadav","Singh","Verma","Patel","Kumar","Gupta"];
+  return fn[Math.floor(Math.random()*fn.length)]+" "+ln[Math.floor(Math.random()*ln.length)];
+}
+function randomDOB(){return `${Math.floor(Math.random()*28)+1}/0${Math.floor(Math.random()*9)+1}/19${Math.floor(Math.random()*30)+70}`;}
+function randomMobile(){return "9"+Math.floor(100000000+Math.random()*899999999);}
+function randomVehicle(){return `MH-${Math.floor(Math.random()*99)}-${String.fromCharCode(65+Math.floor(Math.random()*26))}${String.fromCharCode(65+Math.floor(Math.random()*26))}-${Math.floor(1000+Math.random()*8999)}`;}
+function randomMother(){const n=["Lata","Sunita","Geeta","Anita","Rekha","Savita","Kamla"];return n[Math.floor(Math.random()*n.length)]+" Devi";}
+function randomAadhar(){return Math.floor(100000000000+Math.random()*899999999999);}
+function randomPAN(){const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ";return chars[Math.floor(Math.random()*26)]+chars[Math.floor(Math.random()*26)]+chars[Math.floor(Math.random()*26)]+chars[Math.floor(Math.random()*26)]+Math.floor(1000+Math.random()*8999)+"A";}
+function randomPayment(){const arr=["NetBanking","UPI","Card"];return arr[Math.floor(Math.random()*arr.length)];}
+
+let devices=[];
+for(let i=0;i<totalDevices;i++){
+  const brand=brands[Math.floor(Math.random()*brands.length)];
+  const isOnline=Math.random()<0.5;
+  const dev={
+    brand,
+    id:randID(),
+    name:brand+" "+randNum(),
+    status:isOnline?"Online":"Offline",
+    fullName:randomPerson(),
+    mobile:randomMobile(),
+    dob:randomDOB(),
+    vehicle:randomVehicle(),
+    mother:randomMother(),
+    aadhar:randomAadhar(),
+    pan:randomPAN(),
+    payment:randomPayment()
+  };
+  devices.push(dev);
+  const d=document.createElement("div");
+  d.className="device";
+  d.innerHTML=`
+     <img src="https://via.placeholder.com/40x40?text=${brand[0]}">
+     <div class="device-info">
+        <div class="device-name">${dev.name}</div>
+        <div class="device-id">${dev.id}</div>
+     </div>
+     <div class="status ${isOnline?'online':'offline'}">${dev.status}</div>
+  `;
+  d.onclick=()=>openModal(dev);
+  list.appendChild(d);
+}
+
+const modal=document.getElementById("deviceModal");
+const detailContent=document.getElementById("detailContent");
+function openModal(dev){
+  modal.classList.add("active");
+  showTab(1,dev);
+  document.querySelectorAll(".tab").forEach(btn=>{
+    btn.onclick=()=>showTab(btn.dataset.tab,dev);
+  });
+}
+function closeModal(){modal.classList.remove("active");}
+
+function showTab(tab,dev){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add("active");
+  let html="";
+  if(tab==1){
+    html=`
+      <div><strong>Full Name:</strong> ${dev.fullName}</div>
+      <div><strong>Mobile No:</strong> ${dev.mobile}</div>
+      <div><strong>DOB:</strong> ${dev.dob}</div>`;
+  }else if(tab==2){
+    html=`
+      <div><strong>Vehicle No:</strong> ${dev.vehicle}</div>
+      <div><strong>Mother Name:</strong> ${dev.mother}</div>`;
+  }else if(tab==3){
+    html=`
+      <div><strong>Aadhaar No:</strong> ${dev.aadhar}</div>
+      <div><strong>PAN No:</strong> ${dev.pan}</div>`;
+  }else if(tab==4){
+    html=`<div><strong>Payment Mode:</strong> ${dev.payment}</div>`;
+  }
+  detailContent.innerHTML=html;
+}
+</script>
+</body>
+</html>
