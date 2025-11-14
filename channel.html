@@ -2,172 +2,86 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Telegram Channel Message & File Sender</title>
+  <title>Custom Telegram Sender</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f3f5f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      margin: 0;
       padding: 20px;
     }
-    h2 { color: #333; }
-    textarea, input[type=file], input[type=text] {
-      width: 90%;
-      max-width: 400px;
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 10px auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    textarea,input,button {
+      width: 100%;
       padding: 10px;
       margin-top: 10px;
-      font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      background: #fff;
     }
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      margin-top: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover { background: #0056b3; }
-    p { font-size: 15px; color: #333; }
-    .card {
-      background: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-radius: 12px;
-      padding: 20px;
-      width: 95%;
-      max-width: 500px;
-      margin-bottom: 25px;
-    }
+    button { background: #007bff; color: #fff; border: none; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>📢 Telegram Channel Setup</h2>
-    <input type="text" id="channelIdInput" placeholder="Enter Channel ID or @username..." />
-    <button onclick="saveChannelId()">Save Channel ID</button>
-    <p id="channelStatus"></p>
-  </div>
+<div class="card">
+  <h2>🔐 Setup Bot</h2>
+  <input id="botToken" placeholder="Enter Bot Token...">
+  <input id="channelId" placeholder="Enter Channel ID...">
+</div>
 
-  <div class="card">
-    <h2>Send Text Message to Channel 📩</h2>
-    <textarea id="msg" rows="4" placeholder="Type your message here..."></textarea><br>
-    <button onclick="sendText()">Send Message</button>
-    <p id="statusText"></p>
-  </div>
+<div class="card">
+  <h2>✉️ Message Settings</h2>
+  <textarea id="messageList" rows="5"
+   placeholder="Write messages line by line..."></textarea>
 
-  <div class="card">
-    <h2>Upload & Send Document (PDF / Excel / CSV) 📎</h2>
-    <textarea id="caption" rows="3" placeholder="Add caption or file details here..."></textarea><br>
-    <input type="file" id="fileInput" accept=".pdf,.xls,.xlsx,.csv"><br>
-    <button onclick="uploadDocument()">Upload and Send</button>
-    <p id="statusFile"></p>
-  </div>
+  <input id="msgCount" type="number" placeholder="How many messages?" value="10">
+  <input id="msgDelay" type="number" placeholder="Delay (ms)" value="300">
 
-  <script>
-    const BOT_TOKEN = "8210636853:AAH6K67B8dQfHiSEOEqxTmLMuAMFprc_Oro";
+  <button onclick="sendBulk()">🚀 Send Messages</button>
+  <p id="status"></p>
+</div>
 
-    // --- Load Channel ID from localStorage ---
-    let CHANNEL_ID = localStorage.getItem("channel_id") || "";
-    document.getElementById("channelIdInput").value = CHANNEL_ID;
+<script>
+async function sendBulk() {
+  const token = document.getElementById("botToken").value.trim();
+  const channel = document.getElementById("channelId").value.trim();
+  const list = document.getElementById("messageList").value.trim().split("\n");
+  const count = parseInt(document.getElementById("msgCount").value);
+  const delay = parseInt(document.getElementById("msgDelay").value);
+  const status = document.getElementById("status");
 
-    function saveChannelId() {
-      const newId = document.getElementById("channelIdInput").value.trim();
-      const channelStatus = document.getElementById("channelStatus");
-      if (!newId) {
-        channelStatus.textContent = "❌ Please enter a valid Channel ID.";
-        return;
-      }
-      localStorage.setItem("channel_id", newId);
-      CHANNEL_ID = newId;
-      channelStatus.textContent = "✅ Channel ID saved successfully!";
-      setTimeout(() => channelStatus.textContent = "", 3000);
+  if (!token || !channel || list.length === 0) {
+    status.textContent = "❌ Please fill all fields.";
+    return;
+  }
+
+  status.textContent = "⏳ Sending...";
+
+  try {
+    for (let i = 0; i < count; i++) {
+      let msg = list[i % list.length]; // rotate messages
+
+      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: channel, text: msg })
+      });
+
+      await new Promise(res => setTimeout(res, delay));
     }
 
-    // --- Send text message ---
-    async function sendText() {
-      const msg = document.getElementById('msg').value.trim();
-      const status = document.getElementById('statusText');
-      if (!CHANNEL_ID) {
-        status.textContent = "⚠️ Please set Channel ID first.";
-        return;
-      }
-      if (!msg) {
-        status.textContent = "❌ Please enter a message.";
-        return;
-      }
-
-      status.textContent = "Sending...";
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: CHANNEL_ID, text: msg })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          status.textContent = "✅ Message sent to channel!";
-          document.getElementById('msg').value = "";
-        } else {
-          status.textContent = "❌ Error: " + JSON.stringify(data);
-        }
-      } catch (e) {
-        status.textContent = "⚠️ Network error: " + e.message;
-      }
-    }
-
-    // --- Upload & send document to channel ---
-    async function uploadDocument() {
-      const fileInput = document.getElementById('fileInput');
-      const caption = document.getElementById('caption').value.trim();
-      const status = document.getElementById('statusFile');
-
-      if (!CHANNEL_ID) {
-        status.textContent = "⚠️ Set Channel ID first.";
-        return;
-      }
-
-      if (fileInput.files.length === 0) {
-        status.textContent = "❌ Please select a file.";
-        return;
-      }
-
-      const file = fileInput.files[0];
-      status.textContent = "Uploading...";
-
-      const formData = new FormData();
-      formData.append("chat_id", CHANNEL_ID);
-      formData.append("document", file);
-      if (caption) formData.append("caption", caption);
-
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await res.json();
-        if (data.ok) {
-          status.textContent = `✅ File "${file.name}" sent to channel!`;
-          fileInput.value = "";
-          document.getElementById('caption').value = "";
-        } else {
-          status.textContent = "❌ Error: " + JSON.stringify(data);
-        }
-      } catch (e) {
-        status.textContent = "⚠️ Network error: " + e.message;
-      }
-    }
-  </script>
+    status.textContent = "✅ All messages sent!";
+  } catch (err) {
+    status.textContent = "❌ Error: " + err.message;
+  }
+}
+</script>
 
 </body>
 </html>
