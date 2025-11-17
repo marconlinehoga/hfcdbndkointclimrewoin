@@ -1,146 +1,667 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Custom Telegram Sender + File Support</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f5f8;
-      padding: 20px;
-    }
-    .card {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: 10px auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    textarea,input,button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button { background: #007bff; color: #fff; border: none; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Bulk Message Sender</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        button {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #718096;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+        
+        .file-upload-area.highlight {
+            border-color: #667eea;
+            background-color: #edf2f7;
+        }
+        
+        .file-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .file-info {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .file-list {
+            list-style-type: none;
+        }
+        
+        .file-list li {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .file-name {
+            font-weight: 500;
+        }
+        
+        .file-size {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .status.info {
+            background: #bee3f8;
+            color: #1a365d;
+        }
+        
+        .status.warning {
+            background: #feebc8;
+            color: #744210;
+        }
+        
+        .instructions {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 25px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 600px) {
+            .card {
+                padding: 15px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <header>
+            <h1>Telegram Bulk Message Sender</h1>
+            <p>Send text messages and files to your Telegram channel or group</p>
+        </header>
+        
+        <div class="card">
+            <h2>🔐 Bot Configuration</h2>
+            <div class="input-group">
+                <label for="botToken">Bot Token</label>
+                <input type="text" id="botToken" placeholder="Enter your bot token...">
+            </div>
+            <div class="input-group">
+                <label for="channelId">Channel/Group ID</label>
+                <input type="text" id="channelId" placeholder="Enter channel/group ID...">
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" data-tab="text">📝 Text Messages</div>
+                <div class="tab" data-tab="file">📁 File Messages</div>
+            </div>
+            
+            <div id="text-tab" class="tab-content active">
+                <h2>✉️ Text Message Settings</h2>
+                <div class="input-group">
+                    <label for="messageList">Messages (one per line)</label>
+                    <textarea id="messageList" placeholder="Enter your messages, one per line..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="msgCount">Number of Messages to Send</label>
+                    <input type="number" id="msgCount" min="1" value="10">
+                </div>
+                <div class="input-group">
+                    <label for="msgDelay">Delay Between Messages (ms)</label>
+                    <input type="number" id="msgDelay" min="0" value="300">
+                </div>
+                <button id="sendTextBtn">🚀 Send Text Messages</button>
+            </div>
+            
+            <div id="file-tab" class="tab-content">
+                <h2>📁 File Message Settings</h2>
+                <div class="input-group">
+                    <label>Select Files</label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="file-icon">📁</div>
+                        <p>Click to select files or drag and drop here</p>
+                        <p class="file-types">Supported: PDF, Excel, PNG, JPG, GIF, TXT, ZIP, etc.</p>
+                        <input type="file" id="fileInput" multiple style="display: none;">
+                    </div>
+                </div>
+                
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <h3>Selected Files:</h3>
+                    <ul class="file-list" id="fileList"></ul>
+                </div>
+                
+                <div class="input-group">
+                    <label for="fileMsgCount">Times to Send Each File</label>
+                    <input type="number" id="fileMsgCount" min="1" value="1">
+                </div>
+                
+                <div class="input-group">
+                    <label for="fileDelay">Delay Between Files (ms)</label>
+                    <input type="number" id="fileDelay" min="0" value="500">
+                </div>
+                
+                <div class="input-group">
+                    <label for="fileCaption">Caption (optional)</label>
+                    <textarea id="fileCaption" placeholder="Add a caption for your files..."></textarea>
+                </div>
+                
+                <button id="sendFileBtn">📤 Send Files</button>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <div id="progressText">0%</div>
+            </div>
+            
+            <div class="status info" id="status">
+                Ready to send messages. Configure your bot and channel/group ID first.
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to use this tool:</h3>
+            <ol>
+                <li>Create a Telegram bot via @BotFather and get the bot token</li>
+                <li>Add your bot to your channel/group as an admin</li>
+                <li>Get your channel/group ID (use @username_to_id_bot or similar)</li>
+                <li>Configure the settings and send your messages/files</li>
+            </ol>
+        </div>
+    </div>
 
-<div class="card">
-  <h2>🔐 Setup Bot</h2>
-  <input id="botToken" placeholder="Enter Bot Token...">
-  <input id="channelId" placeholder="Enter Channel ID...">
-</div>
-
-<div class="card">
-  <h2>✉️ Message Settings</h2>
-  <textarea id="messageList" rows="5" placeholder="Write messages line by line..."></textarea>
-  <input id="msgCount" type="number" placeholder="How many messages?" value="10">
-  <input id="msgDelay" type="number" placeholder="Delay (ms)" value="300">
-  <button onclick="sendBulk()">🚀 Send Messages</button>
-  <p id="status"></p>
-</div>
-
-<div class="card">
-  <h2>📁 File Sender</h2>
-  <input id="fileInput" type="file" multiple>
-  <button onclick="sendFiles()">📤 Send Files</button>
-  <p id="fileStatus"></p>
-</div>
-
-
-<script>
-// ------------------------------------------------------
-// 🚀 MESSAGE SENDER (FIXED)
-// ------------------------------------------------------
-async function sendBulk() {
-  const token = document.getElementById("botToken").value.trim();
-  const channel = document.getElementById("channelId").value.trim();
-  const list = document.getElementById("messageList").value.trim().split("\n");
-  const count = parseInt(document.getElementById("msgCount").value);
-  const delay = parseInt(document.getElementById("msgDelay").value);
-  const status = document.getElementById("status");
-
-  if (!token || !channel || list.length === 0) {
-    status.textContent = "❌ Please fill all fields.";
-    return;
-  }
-
-  status.textContent = "⏳ Sending...";
-
-  for (let i = 0; i < count; i++) {
-    try {
-      let msg = list[i % list.length];
-
-      let res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: channel, text: msg })
-      });
-
-      let data = await res.json();
-      if (!data.ok) throw new Error(data.description);
-
-      await new Promise(r => setTimeout(r, delay));
-
-    } catch (err) {
-      status.textContent = "❌ Error: " + err.message;
-      return;
-    }
-  }
-
-  status.textContent = "✅ All messages sent successfully!";
-}
-
-
-
-
-// ------------------------------------------------------
-// 📁 FILE SENDER (FULL FIX + WORKING)
-// ------------------------------------------------------
-async function sendFiles() {
-  const token = document.getElementById("botToken").value.trim();
-  const channel = document.getElementById("channelId").value.trim();
-  const files = document.getElementById("fileInput").files;
-  const status = document.getElementById("fileStatus");
-
-  if (!token || !channel) {
-    status.textContent = "❌ Please enter bot token & channel ID.";
-    return;
-  }
-
-  if (files.length === 0) {
-    status.textContent = "❌ Please select at least one file.";
-    return;
-  }
-
-  status.textContent = "⏳ Uploading files...";
-
-  try {
-    for (let file of files) {
-      const formData = new FormData();
-      formData.append("chat_id", channel);
-      formData.append("document", file);
-
-      let res = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
-        method: "POST",
-        body: formData
-      });
-
-      let data = await res.json();
-      if (!data.ok) throw new Error(data.description);
-    }
-
-    status.textContent = "✅ All files sent successfully!";
-  } catch (err) {
-    status.textContent = "❌ Error: " + err.message;
-  }
-}
-</script>
-
+    <script>
+        // DOM Elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileList = document.getElementById('fileList');
+        const sendTextBtn = document.getElementById('sendTextBtn');
+        const sendFileBtn = document.getElementById('sendFileBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const status = document.getElementById('status');
+        
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update tab contents
+                tabContents.forEach(content => content.classList.remove('active'));
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // File upload handling
+        fileUploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('highlight');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('highlight');
+        });
+        
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('highlight');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileList();
+            }
+        });
+        
+        fileInput.addEventListener('change', updateFileList);
+        
+        function updateFileList() {
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                fileInfo.style.display = 'none';
+                return;
+            }
+            
+            fileInfo.style.display = 'block';
+            fileList.innerHTML = '';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const listItem = document.createElement('li');
+                
+                const fileName = document.createElement('span');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+                
+                const fileSize = document.createElement('span');
+                fileSize.className = 'file-size';
+                fileSize.textContent = formatFileSize(file.size);
+                
+                listItem.appendChild(fileName);
+                listItem.appendChild(fileSize);
+                fileList.appendChild(listItem);
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Update progress
+        function updateProgress(percent) {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = percent + '%';
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        // Send text messages
+        sendTextBtn.addEventListener('click', async () => {
+            const token = document.getElementById('botToken').value.trim();
+            const channel = document.getElementById('channelId').value.trim();
+            const messages = document.getElementById('messageList').value.trim().split('\n');
+            const count = parseInt(document.getElementById('msgCount').value);
+            const delay = parseInt(document.getElementById('msgDelay').value);
+            
+            // Validation
+            if (!token) {
+                showStatus('❌ Please enter your bot token', 'error');
+                return;
+            }
+            
+            if (!channel) {
+                showStatus('❌ Please enter channel/group ID', 'error');
+                return;
+            }
+            
+            if (messages.length === 0 || messages[0] === '') {
+                showStatus('❌ Please enter at least one message', 'error');
+                return;
+            }
+            
+            if (isNaN(count) || count < 1) {
+                showStatus('❌ Please enter a valid message count', 'error');
+                return;
+            }
+            
+            // Disable button and show progress
+            sendTextBtn.disabled = true;
+            sendTextBtn.innerHTML = '⏳ Sending...';
+            updateProgress(0);
+            showStatus('⏳ Sending text messages...', 'info');
+            
+            try {
+                for (let i = 0; i < count; i++) {
+                    const message = messages[i % messages.length]; // Cycle through messages
+                    
+                    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            chat_id: channel,
+                            text: message
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.description || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    // Update progress
+                    const progress = ((i + 1) / count) * 100;
+                    updateProgress(progress);
+                    
+                    // Add delay if not the last message
+                    if (i < count - 1 && delay > 0) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+                
+                showStatus('✅ All text messages sent successfully!', 'success');
+            } catch (error) {
+                console.error('Error sending messages:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                // Re-enable button
+                sendTextBtn.disabled = false;
+                sendTextBtn.innerHTML = '🚀 Send Text Messages';
+            }
+        });
+        
+        // Send files
+        sendFileBtn.addEventListener('click', async () => {
+            const token = document.getElementById('botToken').value.trim();
+            const channel = document.getElementById('channelId').value.trim();
+            const files = fileInput.files;
+            const count = parseInt(document.getElementById('fileMsgCount').value);
+            const delay = parseInt(document.getElementById('fileDelay').value);
+            const caption = document.getElementById('fileCaption').value.trim();
+            
+            // Validation
+            if (!token) {
+                showStatus('❌ Please enter your bot token', 'error');
+                return;
+            }
+            
+            if (!channel) {
+                showStatus('❌ Please enter channel/group ID', 'error');
+                return;
+            }
+            
+            if (files.length === 0) {
+                showStatus('❌ Please select at least one file', 'error');
+                return;
+            }
+            
+            if (isNaN(count) || count < 1) {
+                showStatus('❌ Please enter a valid file count', 'error');
+                return;
+            }
+            
+            // Disable button and show progress
+            sendFileBtn.disabled = true;
+            sendFileBtn.innerHTML = '⏳ Sending...';
+            updateProgress(0);
+            showStatus('⏳ Sending files...', 'info');
+            
+            try {
+                const totalOperations = files.length * count;
+                let completed = 0;
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    
+                    for (let j = 0; j < count; j++) {
+                        const formData = new FormData();
+                        formData.append('chat_id', channel);
+                        formData.append('document', file);
+                        
+                        if (caption) {
+                            formData.append('caption', caption);
+                        }
+                        
+                        // Determine if it's an image to use sendPhoto instead
+                        const isImage = file.type.startsWith('image/');
+                        const endpoint = isImage ? 'sendPhoto' : 'sendDocument';
+                        
+                        const response = await fetch(`https://api.telegram.org/bot${token}/${endpoint}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.description || `HTTP error! status: ${response.status}`);
+                        }
+                        
+                        completed++;
+                        const progress = (completed / totalOperations) * 100;
+                        updateProgress(progress);
+                        
+                        // Add delay if not the last operation
+                        if (completed < totalOperations && delay > 0) {
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                    }
+                }
+                
+                showStatus('✅ All files sent successfully!', 'success');
+            } catch (error) {
+                console.error('Error sending files:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                // Re-enable button
+                sendFileBtn.disabled = false;
+                sendFileBtn.innerHTML = '📤 Send Files';
+            }
+        });
+    </script>
 </body>
 </html>
