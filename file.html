@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Custom Telegram Sender + File Support</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f5f8;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 10px auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    textarea,input,button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button { background: #007bff; color: #fff; border: none; cursor: pointer; }
+  </style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>🔐 Setup Bot</h2>
+  <input id="botToken" placeholder="Enter Bot Token...">
+  <input id="channelId" placeholder="Enter Channel ID...">
+</div>
+
+<div class="card">
+  <h2>✉️ Message Settings</h2>
+  <textarea id="messageList" rows="5" placeholder="Write messages line by line..."></textarea>
+  <input id="msgCount" type="number" placeholder="How many messages?" value="10">
+  <input id="msgDelay" type="number" placeholder="Delay (ms)" value="300">
+  <button onclick="sendBulk()">🚀 Send Messages</button>
+  <p id="status"></p>
+</div>
+
+<div class="card">
+  <h2>📁 File Sender</h2>
+  <input id="fileInput" type="file" multiple>
+  <button onclick="sendFiles()">📤 Send Files</button>
+  <p id="fileStatus"></p>
+</div>
+
+
+<script>
+// ------------------------------------------------------
+// 🚀 MESSAGE SENDER (FIXED)
+// ------------------------------------------------------
+async function sendBulk() {
+  const token = document.getElementById("botToken").value.trim();
+  const channel = document.getElementById("channelId").value.trim();
+  const list = document.getElementById("messageList").value.trim().split("\n");
+  const count = parseInt(document.getElementById("msgCount").value);
+  const delay = parseInt(document.getElementById("msgDelay").value);
+  const status = document.getElementById("status");
+
+  if (!token || !channel || list.length === 0) {
+    status.textContent = "❌ Please fill all fields.";
+    return;
+  }
+
+  status.textContent = "⏳ Sending...";
+
+  for (let i = 0; i < count; i++) {
+    try {
+      let msg = list[i % list.length];
+
+      let res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: channel, text: msg })
+      });
+
+      let data = await res.json();
+      if (!data.ok) throw new Error(data.description);
+
+      await new Promise(r => setTimeout(r, delay));
+
+    } catch (err) {
+      status.textContent = "❌ Error: " + err.message;
+      return;
+    }
+  }
+
+  status.textContent = "✅ All messages sent successfully!";
+}
+
+
+
+
+// ------------------------------------------------------
+// 📁 FILE SENDER (FULL FIX + WORKING)
+// ------------------------------------------------------
+async function sendFiles() {
+  const token = document.getElementById("botToken").value.trim();
+  const channel = document.getElementById("channelId").value.trim();
+  const files = document.getElementById("fileInput").files;
+  const status = document.getElementById("fileStatus");
+
+  if (!token || !channel) {
+    status.textContent = "❌ Please enter bot token & channel ID.";
+    return;
+  }
+
+  if (files.length === 0) {
+    status.textContent = "❌ Please select at least one file.";
+    return;
+  }
+
+  status.textContent = "⏳ Uploading files...";
+
+  try {
+    for (let file of files) {
+      const formData = new FormData();
+      formData.append("chat_id", channel);
+      formData.append("document", file);
+
+      let res = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+        method: "POST",
+        body: formData
+      });
+
+      let data = await res.json();
+      if (!data.ok) throw new Error(data.description);
+    }
+
+    status.textContent = "✅ All files sent successfully!";
+  } catch (err) {
+    status.textContent = "❌ Error: " + err.message;
+  }
+}
+</script>
+
+</body>
+</html>
